@@ -97,11 +97,11 @@ for K in valores_k:
     y_testeado_k = lr_model.predict(Z_test)     #Testeo
     acc = accuracy_score(y_test, y_testeado_k)      #Accuracy
     accuracies.append(acc)
-    print(K)
+    #print(K)
 
 #En la parte del gráfico hubo "ayuda", no sabía bien cómo hacerlo
 plt.figure()
-
+plt.grid()
 plt.plot(valores_k, accuracies, label="PCA mediante SVD")
 
 plt.axhline(
