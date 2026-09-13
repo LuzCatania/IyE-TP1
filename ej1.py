@@ -81,6 +81,24 @@ X_test_centrado = X_test_vec - media_test
 #Aplico SVD
 U, S, Vt = np.linalg.svd(X_train_centrado, full_matrices=False)
 
+def proyectar_componentes_principales(k):
+    Vk=Vt[:k].T
+    proyeccion=X_test_centrado@Vk
+    return proyeccion
+proyeccion_k_2=proyectar_componentes_principales(2)
+
+plt.figure()
+sanos=y_test==0
+neumonia=y_test==1
+
+plt.grid()
+plt.scatter(proyeccion_k_2[sanos,0],proyeccion_k_2[sanos,1],color="blue",label="Sanos")
+plt.scatter(proyeccion_k_2[neumonia,0],proyeccion_k_2[neumonia,1],color="red",label="Neumonia")
+plt.xlabel("Componente principal 1")
+plt.ylabel("Componente principal 2")
+plt.legend()
+plt.show()
+
 #Comienzo a iterar sobre los distintos valores posibles de k
 accuracies = []
 valores_k = range(2, 200)
