@@ -76,59 +76,61 @@ print("Accuracy:", acc)
 media_train = np.mean(X_train_vec, axis=0)
 X_train_centrado = X_train_vec - media_train
 media_test = np.mean(X_test_vec, axis=0)
-X_test_centrado = X_test_vec - media_test
-
+##Buscando para el dos me dice que reste media train, despues podría preguntar (voy a probar como queda)
+#X_test_centrado = X_test_vec - media_test
+X_test_centrado=X_test_vec-media_train
 #Aplico SVD
 U, S, Vt = np.linalg.svd(X_train_centrado, full_matrices=False)
+#Para que no corra al importarlo (despues lo podemos sacra pero para probar el codigo del ejercicio 2)
+if __name__ == "__main__":
+    def proyectar_componentes_principales(k):
+        Vk=Vt[:k].T
+        proyeccion=X_test_centrado@Vk
+        return proyeccion
+    proyeccion_k_2=proyectar_componentes_principales(2)
 
-def proyectar_componentes_principales(k):
-    Vk=Vt[:k].T
-    proyeccion=X_test_centrado@Vk
-    return proyeccion
-proyeccion_k_2=proyectar_componentes_principales(2)
+    plt.figure()
+    sanos=y_test==0
+    neumonia=y_test==1
 
-plt.figure()
-sanos=y_test==0
-neumonia=y_test==1
+    plt.grid()
+    plt.scatter(proyeccion_k_2[sanos,0],proyeccion_k_2[sanos,1],color="blue",label="Sanos")
+    plt.scatter(proyeccion_k_2[neumonia,0],proyeccion_k_2[neumonia,1],color="red",label="Neumonia")
+    plt.xlabel("Componente principal 1")
+    plt.ylabel("Componente principal 2")
+    plt.legend()
+    plt.show()
 
-plt.grid()
-plt.scatter(proyeccion_k_2[sanos,0],proyeccion_k_2[sanos,1],color="blue",label="Sanos")
-plt.scatter(proyeccion_k_2[neumonia,0],proyeccion_k_2[neumonia,1],color="red",label="Neumonia")
-plt.xlabel("Componente principal 1")
-plt.ylabel("Componente principal 2")
-plt.legend()
-plt.show()
+    #Comienzo a iterar sobre los distintos valores posibles de k
+    accuracies = []
+    valores_k = range(2, 200)
 
-#Comienzo a iterar sobre los distintos valores posibles de k
-accuracies = []
-valores_k = range(2, 200)
+    for K in valores_k:
+        Vk = Vt[:K].T   #Tomar las primeras K componentes
 
-for K in valores_k:
-    Vk = Vt[:K].T   #Tomar las primeras K componentes
+        Z_train = X_train_centrado @ Vk     # Proyectar train
+        Z_test = X_test_centrado @ Vk       # Proyectar test
 
-    Z_train = X_train_centrado @ Vk     # Proyectar train
-    Z_test = X_test_centrado @ Vk       # Proyectar test
+        lr_model = LogisticRegression(max_iter=2000)    #Entrena modelo
+        lr_model.fit(Z_train, y_train)
 
-    lr_model = LogisticRegression(max_iter=2000)    #Entrena modelo
-    lr_model.fit(Z_train, y_train)
+        y_testeado_k = lr_model.predict(Z_test)     #Testeo
+        acc = accuracy_score(y_test, y_testeado_k)      #Accuracy
+        accuracies.append(acc)
+        #print(K)
 
-    y_testeado_k = lr_model.predict(Z_test)     #Testeo
-    acc = accuracy_score(y_test, y_testeado_k)      #Accuracy
-    accuracies.append(acc)
-    #print(K)
+    #En la parte del gráfico hubo "ayuda", no sabía bien cómo hacerlo
+    plt.figure()
+    plt.grid()
+    plt.plot(valores_k, accuracies, label="PCA mediante SVD")
 
-#En la parte del gráfico hubo "ayuda", no sabía bien cómo hacerlo
-plt.figure()
-plt.grid()
-plt.plot(valores_k, accuracies, label="PCA mediante SVD")
+    plt.axhline(
+        acc,
+        linestyle="--",
+        label="Entrenado sin PCA"
+    )
 
-plt.axhline(
-    acc,
-    linestyle="--",
-    label="Entrenado sin PCA"
-)
-
-plt.xlabel("Cantidad de componentes K")
-plt.ylabel("Accuracy")
-plt.legend()
-plt.show()
+    plt.xlabel("Cantidad de componentes K")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.show()
